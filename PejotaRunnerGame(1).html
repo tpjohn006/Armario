@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runner Game</title>
+    <style>
+    canvas {
+        background: BlueViolet;
+        display: block;
+        margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        //Jogador
+        const player = {
+            x: 50,
+            y: 300,
+            width:30,
+            height:30,
+            color: "red",
+            velocityY: 0,
+            gravity:0.5,
+            jumpPower:-10,
+            isJumping: false
+        };
+
+        //Obstaculos
+        let obstacles = []; // Corrigido aqui
+        let frameCount = 0;
+        let gameOver = false;
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+        
+        function drawObstacles() {
+            ctx.fillStyle = "black";
+            obstacles.forEach(obstacle => { 
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+           });
+        }
+
+        function updateObstacles (){
+            if (frameCount % 100 === 0){
+                obstacles.push({ x: canvas.width, y: 320, width:20, height:50, speed: 4});
+            }
+            obstacles.forEach(obstacle => obstacle.x -= obstacle.speed); // Mover obstáculos
+            obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0); // Corrigido o filtro
+        }
+
+        function applyPhysics() {
+            player.velocityY += player.gravity;
+            player.y += player.velocityY;
+            if (player.y >= 300) {
+                player.y = 300;
+                player.velocityY = 0; // Corrigido a velocidade para 0 quando o jogador toca o chão
+                player.isJumping = false;
+            }
+        }
+
+        function checkCollisions() {
+            obstacles.forEach(obstacle => { // Corrigido o nome da variável
+                if (player.x < obstacle.x + obstacle.width &&
+                player.x + player.width > obstacle.x &&
+                player.y < obstacle.y + obstacle.height &&
+                player.y + player.height > obstacle.y) {
+                gameOver = true;
+                }
+            });
+        }
+        
+        function gameLoop() {
+            if (gameOver) {
+                ctx.fillStyle = "black";
+                ctx.font = "30px Arial";
+                ctx.fillText("Game Over", canvas.width / 2 - 70, canvas.height / 2);
+                return;
+            }
+        
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawObstacles();
+            applyPhysics();
+            updateObstacles();
+            checkCollisions();
+            frameCount++;
+            requestAnimationFrame(gameLoop);
+        }
+         
+        window.addEventListener("keydown", function (event) {
+            if (event.code === "Space" && !player.isJumping) {
+                player.velocityY = player.jumpPower;
+                player.isJumping = true;
+            }
+        });
+        
+        gameLoop();
+    </script>
+</body>
+</html>
+
+
+        
+        
